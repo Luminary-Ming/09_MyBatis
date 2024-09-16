@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    非 mybatis 代理开发方式，即 namespace 名称是任意的
+-->
+<mapper namespace="abc">
+
+    <select id="selectAll" resultType="User">
+        select * from tb_user
+    </select>
+
+
+    <select id="selectUserById" resultType="User">
+        select * from tb_user where id = #{id}
+    </select>
+
+    <delete id="deleteUserById">
+        delete from tb_user where id = #{id}
+    </delete>
+
+    <!--
+        id：表示 sql 语句执行的唯一标识（对应 mapper 接口中的方法名）
+        parameterType：表示输入的参数类型
+        resultType：标识 sql 执行之后的结果集对应的数据类型
+            对于输入或输出的参数是基本类型、集合类型（其中泛型不是自定义类型），可以省略不写，
+            如果是自定义类型（如：User），就必须写上了。
+        ${}：直接拼接 sql 语句，相当于 jdbc 中的 Statement，容易被 sql 注入攻击
+        #{}：本质是占位符，相当于 jdbc 中的 PreparedStatement，可以防止 sql 注入攻击
+    -->
+    <insert id="addUser" parameterType="User">
+        insert into tb_user(password, name, age, sex)
+        values (#{password}, #{name}, #{age}, #{sex})
+    </insert>
+
+    <update id="updateUser" parameterType="User">
+        update tb_user
+        set name=#{name},
+            age=#{age},
+            sex=#{sex},
+            birthday=#{birthday}
+        where id = #{id}
+    </update>
+</mapper>

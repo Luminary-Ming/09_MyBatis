@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.demo.mapper.OrderMapper">
+    <!--
+        为什么用<resultMap>标签来处理多表联查，在 sql 标签中用 resultType 不行吗？
+        resultType
+            resultType 属性用于指定 SQL 查询返回结果应该被映射到的 Java 类型。
+            当查询结果集中的列名和 Java 对象的属性名完全对应（或者遵循 MyBatis 的驼峰命名自动映射规则）时，
+            使用 resultType 是最简单直接的方式。然而，当查询涉及到多表联查，且返回的结果集包含了复杂的关系（如一对一、一对多、多对多）时，
+            resultType 就不足以表达这些复杂关系了。因为这会导致数据映射不准确或无法正确表达对象之间的关系。
+        resultMap
+            <resultMap> 标签提供了更高级、更灵活的映射能力。它允许你明确指定数据库结果集的列如何映射到 Java 对象的属性上，
+            包括处理嵌套的结果（即对象中的对象）和集合。
+            <resultMap> 中可以包含<association>（用于一对一关系）、<collection>（用于一对多或多对多关系）等子元素，
+            以表达复杂的对象关系。
+    -->
+<!--************************* 一对一 *******************************************************************************-->
+    <resultMap id="OneToOne" type="Order" autoMapping="true">
+        <id property="id" column="oid"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderNumber" column="order_number"/>
+        <!--
+            association 标签配置一对一查询映射关系
+        -->
+        <association property="user" autoMapping="true">
+            <id property="id" column="id"/>
+            <result property="userName" column="user_name"/>
+            <result property="name" column="name"/>
+            <result property="age" column="age"/>
+            <result property="sex" column="sex"/>
+            <result property="birthday" column="birthday"/>
+        </association>
+    </resultMap>
+
+    <select id="orderAndUser" resultMap="OneToOne">
+        select tb_user.*, tb_order.id as oid, tb_order.order_number, tb_order.user_id
+        from tb_user
+        join tb_order
+        on tb_user.id = tb_order.user_id
+        where tb_order.id = #{id}
+    </select>
+
+<!--************************* 一对多 *******************************************************************************-->
+    <resultMap id="OneToMany" type="Order" autoMapping="true">
+        <id property="id" column="oid"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderNumber" column="order_number"/>
+        <!--
+            collection 标签配置一对多查询映射关系
+                property 实体类中的对应的属性
+                ofType 当前集合中引入的对象所属的类型
+        -->
+        <collection property="orderDetails" ofType="OrderDetail" autoMapping="true">
+            <id property="id" column="id"/>
+            <result property="orderId" column="order_id"/>
+            <result property="itemId" column="item_id"/>
+            <result property="totalPrice" column="total_price"/>
+            <result property="status" column="status"/>
+        </collection>
+    </resultMap>
+
+    <select id="orderAndOrderDetail" resultMap="OneToMany">
+        select tb_orderdetail.*, tb_order.id as oid, tb_order.order_number, tb_order.user_id
+        from tb_order
+        join tb_orderdetail
+        on tb_orderdetail.order_id = tb_order.oid
+        where tb_order.id = #{id}
+    </select>
+
+<!--************************* 多对多 *******************************************************************************-->
+    <!-- 先通过订单查询到对应的订单明细，明细查询到关联的商品 -->
+    <!-- OrderDetail 的 resultMap，嵌套关联的 Item 对象 -->
+    <resultMap id="OrderDetailResultMap" type="OrderDetail" autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <!-- 嵌套的关联对象 Item -->
+        <association property="item" autoMapping="true">
+            <id property="id" column="itemid" />
+        </association>
+    </resultMap>
+    <!-- Order 的 resultMap，嵌套 OrderDetail 的集合 -->
+    <resultMap id="ManyToMay" type="Order" autoMapping="true">
+        <id property="id" column="oid"/>
+        <!-- OrderDetails 的集合，每个OrderDetail 都使用 OrderDetailResultMap 进行映射 -->
+        <collection property="orderDetails" ofType="OrderDetail" resultMap="OrderDetailResultMap" autoMapping="true"/>
+    </resultMap>
+    <!-- 查询 Order 集合 SQL 语句（Order 集合内嵌套 OrderDetail 集合，OrderDetail 集合内又嵌套的 Item 对象） -->
+    <select id="orderAndItem" resultMap="ManyToMay">
+        select tb_orderDetail.*,
+               tb_order.id as oid,
+               tb_order.order_number,
+               tb_order.user_id,
+               tb_item.id as itemid,
+               tb_item.item_name,
+               tb_item.item_price,
+               tb_item.item_detail
+        from tb_order
+        join tb_orderdetail
+        on tb_order.id = tb_orderdetail.order_id
+        join tb_item
+        on tb_orderdetail.item_id = tb_item.id
+        where tb_order.id = #{id}
+    </select>
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    mybatis 的代理方式开发，配置 namespace 名称必须是被代理的接口全路径。
+    1. 在 mybatis 中，映射文件中的 namespace 是通常与 Mapper 接口的全限定名相对应，即面向接口编程。
+    当你的 namespace 绑定接口后，你可以不用写接口实现类，mybatis 会通过该绑定自动帮你找到对应要执行的 SQL 语句。
+    2. 当你在 Mapper 接口中定义一个方法时，MyBatis 会根据该接口的全限定名和方法的名称来查找对应的 SQL 语句。
+    这个过程依赖于 namespace 和 SQL 语句的 id 一起构成的全局唯一标识符。
+    3. namespace 被设置为 com.demo.mapper.UserMapper，这与 Mapper 接口的全限定名相对应。
+    MyBatis 在处理 Mapper 接口的 selectAll() 方法时，会根据 namespace 和方法的名称（即 selectAll）来查找对应的 SQL 语句。
+-->
+<mapper namespace="com.demo.mapper.UserMapper">
+
+    <select id="selectAll" resultType="User">
+        select * from tb_user
+    </select>
+
+
+    <select id="selectUserById" resultType="User">
+        select * from tb_user where id = #{id}
+    </select>
+
+    <delete id="deleteUserById">
+        delete from tb_user where id = #{id}
+    </delete>
+
+    <!--
+        id：表示 sql 语句执行的唯一标识（对应 mapper 接口中的方法名）
+        parameterType：表示输入的参数类型
+        resultType：标识 sql 执行之后的结果集对应的数据类型
+            对于输入或输出的参数是基本类型、集合类型，可以省略不写，
+            如果是自定义类型（如：User），就必须写上了。
+        ${}：直接拼接 sql 语句，相当于 jdbc 中的 Statement，容易被 sql 注入攻击
+        #{}：本质是占位符，相当于 jdbc 中的 PreparedStatement，可以防止 sql 注入攻击
+    -->
+    <insert id="addUser" parameterType="User">
+        insert into tb_user(password, name, age, sex)
+        values (#{password}, #{name}, #{age}, #{sex})
+    </insert>
+
+    <update id="updateUser" parameterType="User">
+        update tb_user
+        set name=#{name},
+            age=#{age},
+            sex=#{sex},
+            birthday=#{birthday}
+        where id = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!-- 配置一些数据信息，比如配置数据库连接，还可以加载外部的配置文件（db.properties） -->
+    <properties resource="db.properties">
+        <!-- 这里写的配置会替代 db.properties 文件中写的配置 -->
+     <!--
+        <property name="db.driver" value="com.mysql.cj.jdbc.Driver"/>
+      -->
+    </properties>
+    <!-- 配置 MyBatis 中的设置，改变 MyBatis 的运行时行为 -->
+    <settings>
+        <!-- 开启驼峰命名自动映射 user_name -> userName -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+
+    <typeAliases>
+        <!--
+            给 com.demo.pojo.User 类起别名，在配置文件时，使用此类就可以用 User 来代替
+            alias：用来起别名
+        -->
+        <!--
+        <typeAlias type="com.demo.pojo.User" alias="User"/>
+        -->
+        <!-- 指定一个包名，MyBatis 会扫描包名下面所有类 -->
+        <package name="com.demo.pojo"/>
+    </typeAliases>
+    <!--
+        配置自定义类型转换器：
+        MyBatis 在设置预处理语句（PreparedStatement）（也就是防sql注入的占位符）中的参数或从结果集中取出一个值时，
+        都会用类型处理器将获取到的值以合适的方式转换成 Java 类型。
+    -->
+    <typeHandlers></typeHandlers>
+    <!--
+        环境配置（environments）：
+        尽管可以配置多个环境，但每个 SqlSessionFactory 实例只能选择一种环境
+        1. 默认使用的环境 ID（比如：default="development"）
+        2. 每个 environment 元素定义的环境 ID（比如：id="development"）
+        3. 事务管理器的配置（比如：type="JDBC"）
+        4. 数据源的配置（比如：type="POOLED"）
+    -->
+    <environments default="development">
+        <environment id="development">
+            <!--
+                配置 mysql 连接数据库的参数信息，以及事务相关的配置（JDBC 或 MANAGED）
+             -->
+            <transactionManager type="JDBC"/>
+            <!-- 配置数据库连接的参数 -->
+            <dataSource type="POOLED">
+                <property name="driver" value="${db.driver}"/>
+                <property name="url" value="${db.url}"/>
+                <property name="username" value="${db.username}"/>
+                <property name="password" value="${db.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <!-- 加载单独的sql文件（sql的配置文件） -->
+    <mappers>
+        <!-- 引入不同的sql文件，对对应的数据表进行CRUD等操作   -->
+        <mapper resource="UserMapper.xml"/>
+
+        <!-- 配置 mybatis 对象的 mapper 文件扫描包 -->
+        <!--
+        <mapper resource="com.demo.mapper"/>
+         -->
+    </mappers>
+</configuration>
